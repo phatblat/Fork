@@ -7,7 +7,7 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import kotlin.test.assertTrue
 
-object ForkPluginSpek: Spek({
+object ForkPluginSpek : Spek({
     given("a plugin") {
         val plugin = ForkPlugin()
         val project = ProjectBuilder.builder().build()

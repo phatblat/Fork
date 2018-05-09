@@ -1,4 +1,6 @@
 package at.phatbl.fork
 
-class ForkExtensionSpek {
-}
+import org.jetbrains.spek.api.Spek
+
+object ForkExtensionSpek : Spek({
+})
