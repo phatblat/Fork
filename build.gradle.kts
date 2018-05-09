@@ -57,7 +57,7 @@ val license: String by project
 
 val jvmTarget = JavaVersion.VERSION_1_8
 
-val commonsExecVersion: String by project
+val shellexecVersion: String by project
 val spekVersion: String by project
 val detektVersion: String by project
 val junitPlatformVersion: String by project
@@ -67,12 +67,16 @@ val jacocoVersion: String by project
 // 👪 Dependencies
 /* -------------------------------------------------------------------------- */
 
-repositories.jcenter()
+repositories {
+    jcenter()
+    maven { url = uri("https://dl.bintray.com/phatblat/maven-open-source") }
+}
 
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
+    implementation("at.phatbl:shellexec:$shellexecVersion")
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
@@ -205,8 +209,8 @@ val danger by tasks.creating(ShellExec::class) {
     description = "Runs danger rules."
     group = "Verification"
     command = """\
-        bundle install --gemfile=Gemfile --verbose
-        ./bin/danger --verbose"""
+    bundle install --gemfile=Gemfile --verbose
+    ./bin/danger --verbose"""
 }
 
 val codeQuality by tasks.creating(DefaultTask::class) {
@@ -254,17 +258,17 @@ bintray {
         repo = property("bintray.repo") as String
         name = project.name
         desc = project.description
-        websiteUrl = "$projectUrl"
+        websiteUrl = projectUrl
         issueTrackerUrl = "$projectUrl/issues"
         vcsUrl = "$projectUrl.git"
         githubRepo = "phatblat/${project.name}"
         githubReleaseNotesFile = "CHANGELOG.md"
         setLicenses(property("license") as String)
-        setLabels("gradle", "plugin", "exec", "shell", "bash", "kotlin")
+        setLabels("gradle", "plugin", "git", "github", "fork", "kotlin")
         publicDownloadNumbers = true
         version.apply {
             name = project.version.toString()
-            desc = "ShellExec Gradle Plugin ${project.version}"
+            desc = "${artifactName.capitalize()} Gradle Plugin ${project.version}"
             released = Date().toString()
             vcsTag = "$project.version"
             attributes = mapOf("gradle-plugin" to "${project.group}:$artifactName:$version")
