@@ -1,0 +1,52 @@
+{
+    ":": {
+        "conventions": {
+            "base": "org.gradle.api.plugins.BasePluginConvention",
+            "java": "org.gradle.api.plugins.JavaPluginConvention",
+            "maven": "org.gradle.api.plugins.MavenPluginConvention"
+        },
+        "configurations": [
+            "annotationProcessor",
+            "apiElements",
+            "archives",
+            "compile",
+            "compileClasspath",
+            "compileOnly",
+            "default",
+            "implementation",
+            "jacocoAgent",
+            "jacocoAnt",
+            "junitPlatform",
+            "kapt",
+            "kaptTest",
+            "runtime",
+            "runtimeClasspath",
+            "runtimeElements",
+            "runtimeOnly",
+            "testAnnotationProcessor",
+            "testCompile",
+            "testCompileClasspath",
+            "testCompileOnly",
+            "testImplementation",
+            "testRuntime",
+            "testRuntimeClasspath",
+            "testRuntimeOnly"
+        ],
+        "extensions": {
+            "ext": "org.gradle.api.plugins.ExtraPropertiesExtension",
+            "buildScan": "com.gradle.scan.plugin.internal.api.g",
+            "kotlin": "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension",
+            "kapt": "org.jetbrains.kotlin.gradle.plugin.KaptExtension",
+            "defaultArtifacts": "org.gradle.api.internal.plugins.DefaultArtifactPublicationSet",
+            "reporting": "org.gradle.api.reporting.ReportingExtension",
+            "pluginBundle": "com.gradle.publish.PluginBundleExtension",
+            "bintray": "com.jfrog.bintray.gradle.BintrayExtension",
+            "profiles": "org.gradle.api.NamedDomainObjectContainer<io.gitlab.arturbosch.detekt.extensions.ProfileExtension>",
+            "detekt": "io.gitlab.arturbosch.detekt.extensions.DetektExtension",
+            "junitPlatform": "org.junit.platform.gradle.plugin.JUnitPlatformExtension",
+            "jacoco": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "gradlePlugin": "org.gradle.plugin.devel.GradlePluginDevelopmentExtension",
+            "publishing": "org.gradle.api.publish.PublishingExtension"
+        }
+    }
+}
