@@ -60,6 +60,7 @@ val license: String by project
 
 val jvmTarget = JavaVersion.VERSION_1_8
 
+val grgitVersion: String by project
 val shellexecVersion: String by project
 val spekVersion: String by project
 val detektVersion: String by project
@@ -80,6 +81,7 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
+    implementation("org.ajoberstar:grgit:$grgitVersion")
     implementation("at.phatbl:shellexec:$shellexecVersion")
 
     testImplementation(kotlin("test"))
