@@ -1,4 +1,4 @@
-package at.phatbl.fork
+package at.phatbl.fork.util
 
 import org.gradle.api.Task
 
