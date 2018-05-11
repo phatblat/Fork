@@ -19,6 +19,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.preprocessor.mkdirsOrFail
 import org.junit.platform.console.options.Details
 import org.junit.platform.engine.discovery.ClassNameFilter.includeClassNamePatterns
+import org.junit.platform.gradle.plugin.EnginesExtension
+import org.junit.platform.gradle.plugin.FiltersExtension
+import org.junit.platform.gradle.plugin.JUnitPlatformExtension
 
 /* -------------------------------------------------------------------------- */
 // 🔌 Plugins
@@ -61,6 +64,7 @@ val shellexecVersion: String by project
 val spekVersion: String by project
 val detektVersion: String by project
 val junitPlatformVersion: String by project
+val junitJupiterVersion: String by project
 val jacocoVersion: String by project
 
 /* -------------------------------------------------------------------------- */
@@ -80,6 +84,7 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.platform:junit-platform-runner:$junitPlatformVersion")
     testImplementation("org.jetbrains.spek:spek-api:$spekVersion")
     testImplementation("org.jetbrains.spek:spek-junit-platform-engine:$spekVersion")
@@ -149,6 +154,20 @@ junitPlatform {
         includeClassNamePatterns("^.*Tests?$", ".*Spec", ".*Spek")
     }
     details = Details.TREE
+}
+
+// extension for configuration
+fun JUnitPlatformExtension.filters(setup: FiltersExtension.() -> Unit) {
+    when (this) {
+        is ExtensionAware -> extensions.getByType(FiltersExtension::class.java).setup()
+        else -> throw Exception("${this::class} must be an instance of ExtensionAware")
+    }
+}
+fun FiltersExtension.engines(setup: EnginesExtension.() -> Unit) {
+    when (this) {
+        is ExtensionAware -> extensions.getByType(EnginesExtension::class.java).setup()
+        else -> throw Exception("${this::class} must be an instance of ExtensionAware")
+    }
 }
 
 tasks.withType<JacocoReport> {
