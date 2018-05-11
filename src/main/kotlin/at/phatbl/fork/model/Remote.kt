@@ -2,11 +2,11 @@ package at.phatbl.fork.model
 
 import java.net.URL
 
-data class Remote(
+abstract class Remote(
         val name: String,
         val url: String
 ) {
-    init {
-        val validatedUrl = URL(url)
-    }
+    private val validatedUrl: URL = URL(url)
+
+    val hostname = validatedUrl.host
 }
