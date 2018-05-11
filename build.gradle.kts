@@ -144,6 +144,24 @@ configure<BasePluginConvention> {
     archivesBaseName = javaPackage
 }
 
+gradlePlugin.plugins.create(artifactName) {
+    id = javaPackage
+    implementationClass = "$javaPackage.$pluginClass"
+}
+
+pluginBundle {
+    website = projectUrl
+    vcsUrl = projectUrl
+    description = project.description
+    tags = labels
+
+    plugins.create(artifactName) {
+        id = javaPackage
+        displayName = "${project.name} plugin"
+    }
+    mavenCoordinates.artifactId = artifactName
+}
+
 /* -------------------------------------------------------------------------- */
 // ✅ Test
 /* -------------------------------------------------------------------------- */
@@ -203,7 +221,7 @@ val codeCoverageReport by tasks.creating(JacocoReport::class) {
 /* -------------------------------------------------------------------------- */
 
 detekt {
-    version = "$detektVersion"
+    version = detektVersion
     profile("main", Action {
         input = "$projectDir/src/main/kotlin"
         config = "$projectDir/detekt.yml"
