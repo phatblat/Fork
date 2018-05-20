@@ -19,6 +19,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.preprocessor.mkdirsOrFail
 import org.junit.platform.console.options.Details
 import org.junit.platform.engine.discovery.ClassNameFilter.includeClassNamePatterns
+import org.junit.platform.gradle.plugin.EnginesExtension
+import org.junit.platform.gradle.plugin.FiltersExtension
+import org.junit.platform.gradle.plugin.JUnitPlatformExtension
 
 /* -------------------------------------------------------------------------- */
 // 🔌 Plugins
@@ -52,30 +55,38 @@ val javaPackage = "$group.$artifactName"
 val pluginClass: String by project
 val projectUrl: String by project
 val tags: String by project
-val labels = "$tags".split(",")
+val labels = tags.split(",")
 val license: String by project
 
 val jvmTarget = JavaVersion.VERSION_1_8
 
-val commonsExecVersion: String by project
+val grgitVersion: String by project
+val shellexecVersion: String by project
 val spekVersion: String by project
 val detektVersion: String by project
 val junitPlatformVersion: String by project
+val junitJupiterVersion: String by project
 val jacocoVersion: String by project
 
 /* -------------------------------------------------------------------------- */
 // 👪 Dependencies
 /* -------------------------------------------------------------------------- */
 
-repositories.jcenter()
+repositories {
+    jcenter()
+    maven { url = uri("https://dl.bintray.com/phatblat/maven-open-source") }
+}
 
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
+    implementation("org.ajoberstar:grgit:$grgitVersion")
+    implementation("at.phatbl:shellexec:$shellexecVersion")
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.platform:junit-platform-runner:$junitPlatformVersion")
     testImplementation("org.jetbrains.spek:spek-api:$spekVersion")
     testImplementation("org.jetbrains.spek:spek-junit-platform-engine:$spekVersion")
@@ -133,6 +144,24 @@ configure<BasePluginConvention> {
     archivesBaseName = javaPackage
 }
 
+gradlePlugin.plugins.create(artifactName) {
+    id = javaPackage
+    implementationClass = "$javaPackage.$pluginClass"
+}
+
+pluginBundle {
+    website = projectUrl
+    vcsUrl = projectUrl
+    description = project.description
+    tags = labels
+
+    plugins.create(artifactName) {
+        id = javaPackage
+        displayName = "${project.name} plugin"
+    }
+    mavenCoordinates.artifactId = artifactName
+}
+
 /* -------------------------------------------------------------------------- */
 // ✅ Test
 /* -------------------------------------------------------------------------- */
@@ -145,6 +174,20 @@ junitPlatform {
         includeClassNamePatterns("^.*Tests?$", ".*Spec", ".*Spek")
     }
     details = Details.TREE
+}
+
+// extension for configuration
+fun JUnitPlatformExtension.filters(setup: FiltersExtension.() -> Unit) {
+    when (this) {
+        is ExtensionAware -> extensions.getByType(FiltersExtension::class.java).setup()
+        else -> throw Exception("${this::class} must be an instance of ExtensionAware")
+    }
+}
+fun FiltersExtension.engines(setup: EnginesExtension.() -> Unit) {
+    when (this) {
+        is ExtensionAware -> extensions.getByType(EnginesExtension::class.java).setup()
+        else -> throw Exception("${this::class} must be an instance of ExtensionAware")
+    }
 }
 
 tasks.withType<JacocoReport> {
@@ -178,7 +221,7 @@ val codeCoverageReport by tasks.creating(JacocoReport::class) {
 /* -------------------------------------------------------------------------- */
 
 detekt {
-    version = "$detektVersion"
+    version = detektVersion
     profile("main", Action {
         input = "$projectDir/src/main/kotlin"
         config = "$projectDir/detekt.yml"
@@ -205,8 +248,8 @@ val danger by tasks.creating(ShellExec::class) {
     description = "Runs danger rules."
     group = "Verification"
     command = """\
-        bundle install --gemfile=Gemfile --verbose
-        ./bin/danger --verbose"""
+    bundle install --gemfile=Gemfile --verbose
+    ./bin/danger --verbose"""
 }
 
 val codeQuality by tasks.creating(DefaultTask::class) {
@@ -235,7 +278,7 @@ publishing {
     (publications) {
         "mavenJava"(MavenPublication::class) {
             from(components["java"])
-            artifactId = "$artifactName"
+            artifactId = artifactName
 
             artifact(sourcesJar) { classifier = "sources" }
             artifact(javadocJar) { classifier = "javadoc" }
@@ -254,17 +297,17 @@ bintray {
         repo = property("bintray.repo") as String
         name = project.name
         desc = project.description
-        websiteUrl = "$projectUrl"
+        websiteUrl = projectUrl
         issueTrackerUrl = "$projectUrl/issues"
         vcsUrl = "$projectUrl.git"
         githubRepo = "phatblat/${project.name}"
         githubReleaseNotesFile = "CHANGELOG.md"
         setLicenses(property("license") as String)
-        setLabels("gradle", "plugin", "exec", "shell", "bash", "kotlin")
+        setLabels("gradle", "plugin", "git", "github", "fork", "kotlin")
         publicDownloadNumbers = true
         version.apply {
             name = project.version.toString()
-            desc = "ShellExec Gradle Plugin ${project.version}"
+            desc = "${artifactName.capitalize()} Gradle Plugin ${project.version}"
             released = Date().toString()
             vcsTag = "$project.version"
             attributes = mapOf("gradle-plugin" to "${project.group}:$artifactName:$version")

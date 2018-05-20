@@ -1,0 +1,15 @@
+{
+    ":": {
+        "conventions": {
+            
+        },
+        "configurations": [
+            
+        ],
+        "extensions": {
+            "ext": "org.gradle.api.plugins.ExtraPropertiesExtension",
+            "buildScan": "com.gradle.scan.plugin.internal.api.g",
+            "fork": "at.phatbl.fork.ForkExtension"
+        }
+    }
+}

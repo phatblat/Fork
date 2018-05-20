@@ -5,14 +5,12 @@
 
 rootProject.name = "Fork"
 
-/*
- * Clone Clamp to sibling directory to build from source.
- */
-val clamp = file("../Clamp")
-if (clamp.exists()) {
-    includeBuild(clamp) {
+// Include grgit project in composite build
+val grgitProject = file("../grgit-DISABLED")
+if (grgitProject.exists()) {
+    includeBuild(grgitProject) {
         dependencySubstitution {
-            substitute(module("at.phatbl:clamp")).with(project(":"))
+            substitute(module("org.ajoberstar:grgit")).with(project(":"))
         }
     }
 }
