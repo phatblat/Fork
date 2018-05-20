@@ -34,13 +34,16 @@ class ForkPlugin : Plugin<Project> {
 
         val gitRoot = findGitRoot(project.projectDir)
 
-        // Assume we are in a .fork subdirectory
         grgit = Grgit.open(mapOf("currentDir" to gitRoot))
         origin = buildOrigin(grgit.remote.list().first())
 
         // Read data from DSL extension after it has been evaluated
         project.afterEvaluate {
-            buildModel(extension)
+            try {
+                buildModel(extension)
+            } catch (error: Exception) {
+                project.logger.error("Error configuring project: ${error.localizedMessage}.\nFork plugin is disabled.")
+            }
         }
     }
 
