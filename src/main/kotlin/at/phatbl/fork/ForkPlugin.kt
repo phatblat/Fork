@@ -2,15 +2,27 @@ package at.phatbl.fork
 
 import at.phatbl.fork.model.GitHubRemote
 import at.phatbl.fork.model.Remote
+import org.ajoberstar.grgit.Grgit
+import org.ajoberstar.grgit.Remote as GRemote
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import java.io.File
 
 /**
  * Plugin configuration.
  */
 class ForkPlugin : Plugin<Project> {
+    /** User-provided configuration data. */
     lateinit var extension: ForkExtension
+
+    /** In-process git access. */
+    lateinit var grgit: Grgit
+
+    /** This is the fork. */
+    lateinit var origin: Remote
+
+    /** Required upstream to mirror. */
     lateinit var upstream: Remote
 
     /**
@@ -20,10 +32,28 @@ class ForkPlugin : Plugin<Project> {
         extension = project.extensions.create("fork", ForkExtension::class.java)
         configureSsh()
 
+        val gitRoot = findGitRoot(project.projectDir)
+
+        // Assume we are in a .fork subdirectory
+        grgit = Grgit.open(mapOf("currentDir" to gitRoot))
+        origin = buildOrigin(grgit.remote.list().first())
+
         // Read data from DSL extension after it has been evaluated
         project.afterEvaluate {
             buildModel(extension)
         }
+    }
+
+    /**
+     * Walks up from the current dir looking for the root dir which contains a .git dir.
+     * This allows for the plugin to be applied from a subfolder or the root (e.g. from tests).
+     */
+    fun findGitRoot(currentDir: File): File {
+        val gitDir = currentDir.parentFile.walkTopDown().maxDepth(2).find {
+            file -> file.name == ".git"
+        } ?: throw GradleException("Could not find .git dir")
+
+        return gitDir.parentFile
     }
 
     /**
@@ -34,13 +64,33 @@ class ForkPlugin : Plugin<Project> {
     }
 
     /**
+     * Constructs the origin remote.
+     */
+    fun buildOrigin(remote: GRemote) : Remote {
+        println("${remote.name}: ${remote.url}")
+        val url = remote.url as String
+        val repoName = when {
+            url.startsWith("http", true) ->
+                // https://github.com/phatblat/Fork.git
+                url.split("/")[3]
+            url.startsWith("git@", true) -> {
+                // git@github.com:phatblat/Fork.git
+                val name = url.split("/")[1]
+                name.split(".")[0]
+            }
+            else -> throw GradleException("Unsupported remote url format: $url")
+        }
+        return GitHubRemote(remote.name, repoName)
+    }
+
+    /**
      * Parses the user-provided string to build the upstream remote.
      */
     fun parseUpstream(dslString: String) : Remote {
         // Detect if string is in owner/repo format
         val components = dslString.split("/")
         if (components.count() == 2) {
-            return GitHubRemote(owner = components[0], name = components[1])
+            return GitHubRemote(owner = components[0], repo = components[1])
         }
         throw GradleException("Unable to parse upstream remote: $dslString")
 

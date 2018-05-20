@@ -1,18 +1,19 @@
 package at.phatbl.fork.model
 
 import java.net.URL
+import org.ajoberstar.grgit.Remote as GRemote
 
 class GitHubRemote(
         val owner: String,
-        name: String
+        repo: String
 ) : Remote(
-        name = name,
-        url = "https://github.com/$owner/$name.git"
+        name = owner,
+        url = "https://github.com/$owner/$repo.git"
 ) {
     private val validatedUrl: URL = URL(url)
 
     val httpsUrl: String
-        get() = "https://$hostname/$owner/$name"
+        get() = "https://$hostname/$owner/$name.git"
 
     val sshUrl: String
         get() = "git@$hostname:$owner/$name.git"
