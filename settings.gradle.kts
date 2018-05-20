@@ -5,6 +5,16 @@
 
 rootProject.name = "Fork"
 
+// Include grgit project in composite build
+val grgitProject = file("../grgit-DISABLED")
+if (grgitProject.exists()) {
+    includeBuild(grgitProject) {
+        dependencySubstitution {
+            substitute(module("org.ajoberstar:grgit")).with(project(":"))
+        }
+    }
+}
+
 // Workaround to make the JUnit Platform Gradle Plugin available using the `plugins` DSL
 // See: https://github.com/junit-team/junit5/issues/768#issuecomment-330078905
 pluginManagement {
