@@ -7,6 +7,10 @@ open class FetchRemoteTask : ShellExec() {
     @Input
     lateinit var remoteName: String
 
+    init {
+        group = "Fork"
+    }
+
     /**
      * Builds the git command.
      */
