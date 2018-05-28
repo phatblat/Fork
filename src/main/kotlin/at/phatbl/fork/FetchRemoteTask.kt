@@ -8,7 +8,7 @@ open class FetchRemoteTask : ShellExec() {
     lateinit var remoteName: String
 
     init {
-        group = "Fork"
+        group = "\uD83C\uDF74 Fork"
     }
 
     /**

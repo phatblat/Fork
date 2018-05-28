@@ -41,6 +41,7 @@ class ForkPlugin : Plugin<Project> {
         project.afterEvaluate {
             try {
                 buildModel(extension)
+                createTasks(project)
             } catch (error: Exception) {
                 project.logger.error("Error configuring project: ${error.localizedMessage}.\nFork plugin is disabled.")
             }
@@ -117,5 +118,18 @@ class ForkPlugin : Plugin<Project> {
         //Tip
         //This support must be explicitly enabled with the system property org.ajoberstar.grgit.auth.command.allow=true.
         System.setProperty("org.ajoberstar.grgit.auth.command.allow", "true")
+    }
+
+    /**
+     * Creates gradle tasks.
+     */
+    fun createTasks(project: Project) {
+        // Create fetch task for each remote
+        listOf("origin", "upstream").forEach { remote ->
+            project.tasks.create("fetch${remote.capitalize()}", FetchRemoteTask::class.java).apply {
+                remoteName = remote
+                description = "Fetches the $remote remote."
+            }
+        }
     }
 }
