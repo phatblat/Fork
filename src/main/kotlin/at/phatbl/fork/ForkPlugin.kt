@@ -152,7 +152,7 @@ class ForkPlugin : Plugin<Project> {
 
         // Create fetch task for each remote
         listOf(origin.name, upstream.name).forEach { remote ->
-            project.tasks.create("fetch${remote.capitalize()}", FetchRemoteTask::class.java).apply {
+            project.tasks.create("fetchRemote${remote.capitalize()}", FetchRemoteTask::class.java).apply {
                 remoteName = remote
                 description = "Fetches the $remote remote."
             }

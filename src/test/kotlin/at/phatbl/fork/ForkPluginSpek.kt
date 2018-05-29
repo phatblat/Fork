@@ -127,12 +127,12 @@ object ForkPluginSpek : Spek({
                 assertTrue { task is AddRemoteTask }
             }
             it("creates a fetch remote task for origin") {
-                val task = project.tasks.getByName("fetchOrigin")
+                val task = project.tasks.getByName("fetchRemoteOrigin")
                 assertNotNull(task)
                 assertTrue { task is FetchRemoteTask }
             }
             it("creates a fetch remote task for upstream") {
-                val task = project.tasks.getByName("fetchUpstream")
+                val task = project.tasks.getByName("fetchRemoteUpstream")
                 assertNotNull(task)
                 assertTrue { task is FetchRemoteTask }
             }
