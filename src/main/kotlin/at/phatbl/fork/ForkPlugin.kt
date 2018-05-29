@@ -2,6 +2,9 @@ package at.phatbl.fork
 
 import at.phatbl.fork.model.GitHubRemote
 import at.phatbl.fork.model.Remote
+import at.phatbl.fork.tasks.AddRemoteTask
+import at.phatbl.fork.tasks.FetchRemoteTask
+import at.phatbl.fork.tasks.PushRemoteTask
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.Remote as GRemote
 import org.gradle.api.GradleException
@@ -41,6 +44,7 @@ class ForkPlugin : Plugin<Project> {
         project.afterEvaluate {
             try {
                 buildModel(extension)
+                createTasks(project)
             } catch (error: Exception) {
                 project.logger.error("Error configuring project: ${error.localizedMessage}.\nFork plugin is disabled.")
             }
@@ -48,15 +52,18 @@ class ForkPlugin : Plugin<Project> {
     }
 
     /**
-     * Walks up from the current dir looking for the root dir which contains a .git dir.
+     * Look in the current dir and parent for a .git dir which indicates the git root.
      * This allows for the plugin to be applied from a subfolder or the root (e.g. from tests).
      */
     fun findGitRoot(currentDir: File): File {
-        val gitDir = currentDir.parentFile.walkTopDown().maxDepth(2).find {
-            file -> file.name == ".git"
-        } ?: throw GradleException("Could not find .git dir")
+        listOf(currentDir, currentDir.parentFile).forEach { folder ->
+            val gitDir = folder.listFiles().find { file -> file.name == ".git" }
+            if (gitDir != null) {
+                return gitDir.parentFile
+            }
+        }
 
-        return gitDir.parentFile
+        throw GradleException("Could not find .git dir")
     }
 
     /**
@@ -72,18 +79,27 @@ class ForkPlugin : Plugin<Project> {
     fun buildOrigin(remote: GRemote) : Remote {
         println("${remote.name}: ${remote.url}")
         val url = remote.url as String
-        val repoName = when {
-            url.startsWith("http", true) ->
+        return when {
+            url.startsWith("http", true) -> {
                 // https://github.com/phatblat/Fork.git
-                url.split("/")[3]
+                val components = url.split("/")
+                GitHubRemote(
+                        name = remote.name,
+                        owner = components[3],
+                        repoName = components[4].split(".").first()
+                )
+            }
             url.startsWith("git@", true) -> {
                 // git@github.com:phatblat/Fork.git
-                val name = url.split("/")[1]
-                name.split(".")[0]
+                val components = url.split("/")
+                GitHubRemote(
+                        name = remote.name,
+                        owner = components[0].split(":").last(),
+                        repoName = components[1].split(".").first()
+                )
             }
             else -> throw GradleException("Unsupported remote url format: $url")
         }
-        return GitHubRemote(remote.name, repoName)
     }
 
     /**
@@ -93,7 +109,11 @@ class ForkPlugin : Plugin<Project> {
         // Detect if string is in owner/repo format
         val components = dslString.split("/")
         if (components.count() == 2) {
-            return GitHubRemote(owner = components[0], repo = components[1])
+            return GitHubRemote(
+                    name = "upstream",
+                    owner = components[0],
+                    repoName = components[1]
+            )
         }
         throw GradleException("Unable to parse upstream remote: $dslString")
 
@@ -117,5 +137,31 @@ class ForkPlugin : Plugin<Project> {
         //Tip
         //This support must be explicitly enabled with the system property org.ajoberstar.grgit.auth.command.allow=true.
         System.setProperty("org.ajoberstar.grgit.auth.command.allow", "true")
+    }
+
+    /**
+     * Creates gradle tasks.
+     */
+    fun createTasks(project: Project) {
+        // Add upstream remote to git
+        project.tasks.create("addRemoteUpstream", AddRemoteTask::class.java).apply {
+            remoteName = "upstream"
+            url = upstream.url
+            description = "Adds the upstream remote, if missing."
+        }
+
+        // Create fetch task for each remote
+        listOf(origin.name, upstream.name).forEach { remote ->
+            project.tasks.create("fetchRemote${remote.capitalize()}", FetchRemoteTask::class.java).apply {
+                remoteName = remote
+                description = "Fetches the $remote remote."
+            }
+        }
+
+        // Add upstream remote to git
+        project.tasks.create("pushRemote${origin.name.capitalize()}", PushRemoteTask::class.java).apply {
+            remoteName = origin.name
+            description = "Pushes the ${origin.name} remote."
+        }
     }
 }
