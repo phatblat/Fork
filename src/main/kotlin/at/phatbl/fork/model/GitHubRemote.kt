@@ -5,10 +5,11 @@ import org.ajoberstar.grgit.Remote as GRemote
 
 class GitHubRemote(
         val owner: String,
-        repo: String
+        name: String = owner,
+        repoName: String
 ) : Remote(
-        name = owner,
-        url = "https://github.com/$owner/$repo.git"
+        name = name,
+        url = "https://github.com/$owner/$repoName.git"
 ) {
     private val validatedUrl: URL = URL(url)
 

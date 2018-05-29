@@ -76,18 +76,27 @@ class ForkPlugin : Plugin<Project> {
     fun buildOrigin(remote: GRemote) : Remote {
         println("${remote.name}: ${remote.url}")
         val url = remote.url as String
-        val repoName = when {
-            url.startsWith("http", true) ->
+        return when {
+            url.startsWith("http", true) -> {
                 // https://github.com/phatblat/Fork.git
-                url.split("/")[3]
+                val components = url.split("/")
+                GitHubRemote(
+                        name = remote.name,
+                        owner = components[3],
+                        repoName = components[4].split(".").first()
+                )
+            }
             url.startsWith("git@", true) -> {
                 // git@github.com:phatblat/Fork.git
-                val name = url.split("/")[1]
-                name.split(".")[0]
+                val components = url.split("/")
+                GitHubRemote(
+                        name = remote.name,
+                        owner = components[0].split(":").last(),
+                        repoName = components[1].split(".").first()
+                )
             }
             else -> throw GradleException("Unsupported remote url format: $url")
         }
-        return GitHubRemote(remote.name, repoName)
     }
 
     /**
@@ -97,7 +106,11 @@ class ForkPlugin : Plugin<Project> {
         // Detect if string is in owner/repo format
         val components = dslString.split("/")
         if (components.count() == 2) {
-            return GitHubRemote(owner = components[0], repo = components[1])
+            return GitHubRemote(
+                    name = "upstream",
+                    owner = components[0],
+                    repoName = components[1]
+            )
         }
         throw GradleException("Unable to parse upstream remote: $dslString")
 
@@ -128,7 +141,7 @@ class ForkPlugin : Plugin<Project> {
      */
     fun createTasks(project: Project) {
         // Create fetch task for each remote
-        listOf("origin", "upstream").forEach { remote ->
+        listOf(origin.name, upstream.name).forEach { remote ->
             project.tasks.create("fetch${remote.capitalize()}", FetchRemoteTask::class.java).apply {
                 remoteName = remote
                 description = "Fetches the $remote remote."

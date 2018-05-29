@@ -56,19 +56,36 @@ object ForkPluginSpek : Spek({
                 }
             }
         }
-        on("build origin") {
-            val gRemote = GRemote(hashMapOf(
-                    "name" to "owner",
-                    "url" to "https://github.com/owner/repo.git"
-            ))
-            val remote = plugin.buildOrigin(gRemote)
-            it("creates a github remote") {
-                assertNotNull(remote)
-                assertTrue {
-                    remote is GitHubRemote && remote.owner == "owner"
+        context("build origin") {
+            on("matching owner and remote name") {
+                val gRemote = GRemote(hashMapOf(
+                        "name" to "owner",
+                        "url" to "https://github.com/owner/repo.git"
+                ))
+                val remote = plugin.buildOrigin(gRemote)
+                it("creates a github remote") {
+                    assertNotNull(remote)
+                    assertTrue {
+                        remote is GitHubRemote && remote.owner == "owner"
+                    }
+                    assertEquals("owner", remote.name)
+                    assertEquals("github.com", remote.hostname)
                 }
-                assertEquals("owner", remote.name)
-                assertEquals("github.com", remote.hostname)
+            }
+            on("different owner and remote names") {
+                val gRemote = GRemote(hashMapOf(
+                        "name" to "upstream",
+                        "url" to "https://github.com/owner/repo.git"
+                ))
+                val remote = plugin.buildOrigin(gRemote)
+                it("creates a github remote") {
+                    assertNotNull(remote)
+                    assertTrue {
+                        remote is GitHubRemote && remote.owner == "owner"
+                    }
+                    assertEquals("upstream", remote.name)
+                    assertEquals("github.com", remote.hostname)
+                }
             }
         }
         on("parse upstream") {
@@ -78,7 +95,7 @@ object ForkPluginSpek : Spek({
                 assertTrue {
                     remote is GitHubRemote && remote.owner == "owner"
                 }
-                assertEquals("owner", remote.name)
+                assertEquals("upstream", remote.name)
                 assertEquals("github.com", remote.hostname)
             }
         }
