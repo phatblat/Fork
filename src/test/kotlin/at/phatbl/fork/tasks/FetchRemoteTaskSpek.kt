@@ -1,4 +1,4 @@
-package at.phatbl.fork
+package at.phatbl.fork.tasks
 
 import org.gradle.testfixtures.ProjectBuilder
 import org.jetbrains.spek.api.Spek

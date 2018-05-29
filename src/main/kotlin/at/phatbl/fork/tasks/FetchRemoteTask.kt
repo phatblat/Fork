@@ -1,4 +1,4 @@
-package at.phatbl.fork
+package at.phatbl.fork.tasks
 
 import at.phatbl.shellexec.ShellExec
 import org.gradle.api.tasks.Input

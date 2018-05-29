@@ -2,6 +2,7 @@ package at.phatbl.fork
 
 import at.phatbl.fork.model.GitHubRemote
 import at.phatbl.fork.model.Remote
+import at.phatbl.fork.tasks.FetchRemoteTask
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.Remote as GRemote
 import org.gradle.api.GradleException
