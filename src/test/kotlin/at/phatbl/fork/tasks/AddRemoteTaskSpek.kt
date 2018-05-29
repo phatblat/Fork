@@ -7,15 +7,16 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import kotlin.test.assertEquals
 
-object FetchRemoteTaskSpek : Spek({
-    describe("fetch remote task") {
+object AddRemoteTaskSpek : Spek({
+    describe("add remote task") {
         val project = ProjectBuilder.builder().build()
-        val task = project.tasks.create("fetchRemote", FetchRemoteTask::class.java)
+        val task = project.tasks.create("addRemote", AddRemoteTask::class.java)
         on("pre-execute") {
             task.remoteName = "upstream"
+            task.url = "git@github.com:phatblat/Fork.git"
             it("builds a git command") {
                 task.preExec()
-                assertEquals("git fetch upstream", task.command)
+                assertEquals("git add upstream git@github.com:phatblat/Fork.git", task.command)
             }
         }
     }

@@ -2,6 +2,7 @@ package at.phatbl.fork
 
 import at.phatbl.fork.model.GitHubRemote
 import at.phatbl.fork.model.Remote
+import at.phatbl.fork.tasks.AddRemoteTask
 import at.phatbl.fork.tasks.FetchRemoteTask
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.Remote as GRemote
@@ -141,6 +142,13 @@ class ForkPlugin : Plugin<Project> {
      * Creates gradle tasks.
      */
     fun createTasks(project: Project) {
+        // Add upstream remote to git
+        project.tasks.create("addRemoteUpstream", AddRemoteTask::class.java).apply {
+            remoteName = "upstream"
+            url = upstream.url
+            description = "Adds the upstream remote, if missing."
+        }
+        
         // Create fetch task for each remote
         listOf(origin.name, upstream.name).forEach { remote ->
             project.tasks.create("fetch${remote.capitalize()}", FetchRemoteTask::class.java).apply {
