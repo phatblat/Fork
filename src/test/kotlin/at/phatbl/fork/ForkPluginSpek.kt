@@ -1,6 +1,9 @@
 package at.phatbl.fork
 
 import at.phatbl.fork.model.GitHubRemote
+import at.phatbl.fork.tasks.AddRemoteTask
+import at.phatbl.fork.tasks.FetchRemoteTask
+import at.phatbl.fork.tasks.PushRemoteTask
 import at.phatbl.shellexec.ShellCommand
 import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
@@ -104,6 +107,39 @@ object ForkPluginSpek : Spek({
                 Assertions.assertThrows(GradleException::class.java) {
                     plugin.parseUpstream("not a valid github reference")
                 }
+            }
+        }
+        on("create tasks") {
+            plugin.origin = GitHubRemote(
+                    name = "origin",
+                    owner = "phatblat",
+                    repoName = "Fork"
+            )
+            plugin.upstream = GitHubRemote(
+                    name = "upstream",
+                    owner = "phatblat",
+                    repoName = "Fork"
+            )
+            plugin.createTasks(project)
+            it("creates an add remote task") {
+                val task = project.tasks.getByName("addRemoteUpstream")
+                assertNotNull(task)
+                assertTrue { task is AddRemoteTask }
+            }
+            it("creates a fetch remote task for origin") {
+                val task = project.tasks.getByName("fetchOrigin")
+                assertNotNull(task)
+                assertTrue { task is FetchRemoteTask }
+            }
+            it("creates a fetch remote task for upstream") {
+                val task = project.tasks.getByName("fetchUpstream")
+                assertNotNull(task)
+                assertTrue { task is FetchRemoteTask }
+            }
+            it("creates a push remote task") {
+                val task = project.tasks.getByName("pushRemoteOrigin")
+                assertNotNull(task)
+                assertTrue { task is PushRemoteTask }
             }
         }
     }
