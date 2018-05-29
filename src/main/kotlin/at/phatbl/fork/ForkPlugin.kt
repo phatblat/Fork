@@ -49,15 +49,18 @@ class ForkPlugin : Plugin<Project> {
     }
 
     /**
-     * Walks up from the current dir looking for the root dir which contains a .git dir.
+     * Look in the current dir and parent for a .git dir which indicates the git root.
      * This allows for the plugin to be applied from a subfolder or the root (e.g. from tests).
      */
     fun findGitRoot(currentDir: File): File {
-        val gitDir = currentDir.parentFile.walkTopDown().maxDepth(2).find {
-            file -> file.name == ".git"
-        } ?: throw GradleException("Could not find .git dir")
+        listOf(currentDir, currentDir.parentFile).forEach { folder ->
+            val gitDir = folder.listFiles().find { file -> file.name == ".git" }
+            if (gitDir != null) {
+                return gitDir.parentFile
+            }
+        }
 
-        return gitDir.parentFile
+        throw GradleException("Could not find .git dir")
     }
 
     /**

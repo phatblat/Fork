@@ -5,17 +5,16 @@ import at.phatbl.shellexec.ShellCommand
 import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
 import org.jetbrains.spek.api.Spek
+import org.jetbrains.spek.api.dsl.*
 import org.ajoberstar.grgit.Remote as GRemote
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
 import org.junit.jupiter.api.Assertions
+import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 object ForkPluginSpek : Spek({
-    given("a plugin") {
+    describe("a plugin") {
         val plugin = ForkPlugin()
         val project = ProjectBuilder.builder().build()
         beforeGroup {
@@ -31,6 +30,30 @@ object ForkPluginSpek : Spek({
             it("creates an extension") {
                 val extension = project.extensions.getByName("fork")
                 assertTrue(extension is ForkExtension)
+            }
+        }
+        on("configure ssh") {
+            plugin.configureSsh()
+            it("sets a system property") {
+                assertEquals("true", System.getProperty("org.ajoberstar.grgit.auth.command.allow"))
+            }
+        }
+        context("find git root") {
+            on("the root project") {
+                val rootDir = project.rootDir
+                val gitRoot = plugin.findGitRoot(rootDir)
+                it("is the same as the root project dir") {
+                    assertEquals(rootDir, gitRoot)
+                }
+            }
+            on("a child project") {
+                val subprojectDir = File(project.rootDir, ".fork")
+                subprojectDir.mkdir()
+                val subproject = ProjectBuilder.builder().withProjectDir(subprojectDir).build()
+                val gitRoot = plugin.findGitRoot(subprojectDir)
+                it("is the same as the root project dir") {
+                    assertEquals(project.rootDir, gitRoot)
+                }
             }
         }
         on("build origin") {
